@@ -38,7 +38,7 @@ provider-name="Infotec - Kodi - Online">
 	<dir miniversion="18.9.1">
 		<info compressed="false">https://raw.githubusercontent.com/kodinfotec/matrix/master/addons.xml</info>
 		<checksum>https://raw.githubusercontent.com/kodinfotec/matrix/master/addons.xml.md5</checksum>
-		<datadir zip="true">https://raw.githubusercontent.com/kodinfotec/matrix/master/repo</datadir>
+		<datadir zip="true">https://raw.githubusercontent.com/kodinfotec/matrix/master</datadir>
 	</dir>
 
 </extension>
