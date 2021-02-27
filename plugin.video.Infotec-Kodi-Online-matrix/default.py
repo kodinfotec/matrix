@@ -78,14 +78,14 @@ url_server_vip = ''
 
 ## MULTLINK
 ## nome para $nome, padrão: lsname para $lsname
-playlist_command = 'nome'
+playlist_command = 'nortv'
 dialog_playlist = 'Selecione um item'
 
 # user agent - Padrão: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/537.36
 useragent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/537.36'
 
 # Base - seu link principal
-url_b64_principal = 'aHR0cHM6Ly9naXRsYWIuY29tL2luZm90ZWNrb2Rpb25saW5lL2luZm90ZWMta29kaS8tL3Jhdy9tYXN0ZXIvSG9tZQ=='
+url_b64_principal = 'aHR0cHM6Ly9naXRsYWIuY29tL2luZm90ZWNrb2Rpb25saW5lL2tvZGluZm90ZWMtbWF0cml4Ly0vcmF3L21hc3Rlci9QUklOQ0lQQUwvRW50cmFkYQ=='
 url_principal = base64.b64decode(url_b64_principal).decode('utf-8')
 
 #name - mensagem suporte
