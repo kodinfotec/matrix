@@ -169,9 +169,9 @@ v2.3.14 (2019-02-10)
 </extension>
 </addon>
 
-<addon id="plugin.video.kodi.online.marvel"
-version="0.0.1"
-name="[COLOR orange]Kodi [COLOR blue]Online [COLOR lime]Marvel [COLOR yellow]Matrix[/COLOR]"
+<addon id="plugin.video.kodi.online.marvel.matrix"
+version="0.1.2"
+name="[COLOR orange]Kodi[/COLOR][COLOR white]Online[/COLOR][COLOR lime]Marvel[/COLOR][COLOR cyan]Matrix[/COLOR]"
 provider-name="Infotec - Kodi - Online">
 <requires>
   <import addon="xbmc.python" version="3.0.0"/>
@@ -181,7 +181,7 @@ provider-name="Infotec - Kodi - Online">
 </extension>
 <extension point="xbmc.addon.metadata">
   <summary lang="en">Kodi Video Plugin</summary>
-  <description lang="en_GB">An example video plugin for Kodi mediacenter.</description>
+  <description lang="en_GB">My video plugin for Kodi mediacenter.</description>
   <disclaimer lang="en_GB">Free sample videos </disclaimer>
   <assets>
     <icon>icon.png</icon>
@@ -221,7 +221,7 @@ provider-name="Infotec - Kodi - Online">
 
 <addon id="repository.kodinfotec.matrix"
 version="2.4.3"
-name="[COLOR maroon]RepositÃ³rio[/COLOR] [COLOR orange]Kodi[/COLOR][COLOR yellow]nfotec[/COLOR] [COLOR cyan]Matrix[/COLOR]"
+name="[COLOR maroon]Repositorio[/COLOR] [COLOR orange]Kodi[/COLOR][COLOR yellow]nfotec[/COLOR] [COLOR cyan]Matrix[/COLOR]"
 provider-name="Infotec - Kodi - Online">
 <requires>
   <import addon="xbmc.addon" version="12.0.0"/>
