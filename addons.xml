@@ -195,8 +195,8 @@ provider-name="Infotec - Kodi - Online">
 </addon>
 
 <addon id="plugin.video.kodi.online.series"
-version="1.2.1"
-name="[COLOR orange]Kodi [COLOR lightskyblue]Online [COLOR lime]SÃ©ries [COLOR yellow]Matrix[/COLOR]"
+version="1.2.2"
+name="[COLOR orange]Kodi [COLOR lightskyblue]Online [COLOR lime]Series [COLOR yellow]Matrix[/COLOR]"
 provider-name="Infotec - Kodi - Online">
 <requires>
   <import addon="xbmc.python" version="3.0.0"/>
