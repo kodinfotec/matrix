@@ -141,7 +141,7 @@ v2.3.14 (2019-02-10)
 
 <addon id="plugin.video.Infotec-Kodi-Online-matrix"
        name="Infotec-Kodi-Online-Matrix"
-       version="1.0.0+matrix.1"
+       version="1.0.1+matrix.1"
        provider-name="By Infotec-Kodi-Online">
 <requires>
     <import addon="xbmc.python" version="3.0.0"/>
