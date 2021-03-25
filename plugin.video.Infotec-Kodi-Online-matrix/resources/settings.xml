@@ -29,7 +29,7 @@
 <category label="Complementos">
 	<setting label="[COLOR lightblue]Configurações de Complemento:[/COLOR]" type="lsep"/>
 	<setting label="Verificar Complementos" id="check_addon" type="bool" default="true" />
-	<setting label="Baixar e Instalar Elementum" id="elementum" type="bool" default="true" />
+	<setting label="Baixar e Instalar Elementum" id="elementum" type="bool" default="false" />
 	<setting label="Baixar e Instalar Youtube" id="youtube" type="bool" default="false" />
 </category>
 <category label="Outros">
