@@ -2,7 +2,7 @@
 <addons>
 <addon
   id="inputstream.adaptive"
-  version="2.6.7"
+  version="2.6.8"
   name="InputStream Adaptive"
   provider-name="peak3d">
   <requires>
@@ -25,7 +25,12 @@
     <description lang="en_GB">InputStream client for adaptive streams</description>
     <description lang="es_ES">Cliente InputStream para flujo de datos adaptativos</description>
     <platform>windows-x86_64</platform>
-    <news>v2.6.7 (2021-02-10)
+    <news>
+v2.6.8 (2021-03-26)
+- [Dash] Append / to baseurl if required
+- Fix Base Domain (fixes uri=/path/)
+
+v2.6.7 (2021-02-10)
 - Fix build for ios/tvos
 - Use the full BaseUrl if it's a real url inside an AdaptationSet
 
