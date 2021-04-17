@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <addon id="plugin.video.Infotec-Kodi-Online-matrix"
        name="[COLOR orange]Infotec[/COLOR]-[COLOR lime]Kodi[/COLOR]-[COLOR lightskyblue]Online[/COLOR]-[COLOR yellow]Matrix[/COLOR]"
-       version="1.0.5+matrix.1"
+       version="1.0.6+matrix.1"
        provider-name="By Infotec-Kodi-Online">
 <requires>
     <import addon="xbmc.python" version="3.0.0"/>
