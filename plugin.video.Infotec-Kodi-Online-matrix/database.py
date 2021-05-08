@@ -1,65 +1,11 @@
-import xbmc
-import xbmcgui
-import os
-import sqlite3
-import datetime
+# encoded by pyprotect
+# http://live-tv.epizy.com/pyprotect
 
-dir_database = xbmc.translatePath("special://profile/Database")
-db = os.path.join(dir_database, 'Addons33.db')
-
-def get_kversion():
-	full_version_info = xbmc.getInfoLabel('System.BuildVersion')
-	baseversion = full_version_info.split(".")
-	intbase = int(baseversion[0])
-	# if intbase > 16.5:
-	# 	log('HIGHER THAN 16.5')
-	# if intbase < 16.5:
-	# 	log('LOWER THAN 16.5')
-	return  intbase
-    
-
-def delete_id(addon_id):
-    try:
-        conn = sqlite3.connect(db)
-        cursor = conn.cursor()
-        sql = 'DELETE FROM installed WHERE addonID=?'
-        cursor.execute(sql, (addon_id,))
-        conn.commit()
-        conn.close()
-    except:
-        pass
-        
-def insert_id(addon_id):
-    try:
-        now = datetime.datetime.now()
-        installDate = now.strftime("%Y-%m-%d %H:%M:%S")
-        value = 1
-        conn = sqlite3.connect(db)
-        cursor = conn.cursor()
-        sql = 'INSERT INTO installed (addonID,enabled,installDate) VALUES(?,?,?)'
-        cursor.execute(sql, (addon_id,value,installDate,))
-        conn.commit()
-        conn.close()
-    except:
-        pass
-        
-def update_id(addon_id):
-    try:
-        value = 1
-        conn = sqlite3.connect(db)
-        cursor = conn.cursor()
-        sql = 'UPDATE installed SET enabled= ? WHERE addonID= ?'
-        cursor.execute(sql, (value,addon_id,))
-        conn.commit()
-        conn.close()
-    except:
-        pass        
-
-
-def enable_addon(addon_id):
-    if get_kversion() >16.5:
-        delete_id(addon_id)
-        insert_id(addon_id)
-        #update_id(addon_id)
-        #xbmc.executebuiltin("XBMC.UpdateLocalAddons()")
-#checkintegrity13122019
+import base64, codecs
+magic = 'aW1wb3J0IHhibWMNCmltcG9ydCB4Ym1jZ3VpDQppbXBvcnQgb3MNCmltcG9ydCBzcWxpdGUzDQppbXBvcnQgZGF0ZXRpbWUNCg0KZGlyX2RhdGFiYXNlID0geGJtYy50cmFuc2xhdGVQYXRoKCJzcGVjaWFsOi8vcHJvZmlsZS9EYXRhYmFzZSIpDQpkYiA9IG9zLnBhdGguam9pbihkaXJfZGF0YWJhc2UsICdBZGRvbnMzMy5kYicpDQoNCmRlZiBnZXRfa3ZlcnNpb24oKToNCglmdWxsX3ZlcnNpb25faW5mbyA9IHhibWMuZ2V0SW5mb0xhYmVsKCdTeXN0ZW0uQnVpbGRWZXJzaW9uJykNCgliYXNldmVyc2lvbiA9IGZ1bGxfdmVyc2lvbl9pbmZvLnNwbGl0KCIuIikNCglpbnRiYXNlID0gaW50KGJhc2V2ZXJzaW9uWzBdKQ0KCSMgaWYgaW50YmFzZSA+IDE2LjU6DQoJIyAJbG9nKCdISUdIRVIgVEhBTiAxNi41JykNCgkjIGlmIGludGJhc2UgPCAxNi41Og0KCSMgCWxvZygnTE9XRV'
+love = 'VtIRuOGvNkAv41WlxAPtylMKE1pz4tVTyhqTWup2HAPvNtVPNAPt0XMTIzVTEyoTI0MI9cMPuuMTEioy9cMPx6QDbtVPNtqUW5Bt0XVPNtVPNtVPOwo25hVQ0tp3SfnKEyZl5wo25hMJA0XTEvXD0XVPNtVPNtVPOwqKWmo3VtCFOwo25hYzA1paAipvtcQDbtVPNtVPNtVUAkoPN9VPqREHkSIRHtEyWCGFOcoaA0LJkfMJDtI0uSHxHtLJExo25WEQ0/Wj0XVPNtVPNtVPOwqKWmo3VhMKuyL3I0MFumpJjfVPuuMTEioy9cMPjcXD0XVPNtVPNtVPOwo25hYzAioJ1cqPtcQDbtVPNtVPNtVTAioz4hL2kip2HbXD0XVPNtVTI4L2IjqQbAPvNtVPNtVPNtpTSmpj0XVPNtVPNtVPNAPzEyMvOcoaAypaEsnJDbLJExo25snJDcBt0XVPNtVUElrGbAPvNtVPNtVPNtoz93VQ0tMTS0MKEcoJHhMTS0MKEcoJHhoz93XPxAPvNtVPNtVPNtnJ5mqTSfoREuqTHtCFOho3php3ElMaEcoJHbVvIMYFIg'
+god = 'LSVkICVIOiVNOiVTIikNCiAgICAgICAgdmFsdWUgPSAxDQogICAgICAgIGNvbm4gPSBzcWxpdGUzLmNvbm5lY3QoZGIpDQogICAgICAgIGN1cnNvciA9IGNvbm4uY3Vyc29yKCkNCiAgICAgICAgc3FsID0gJ0lOU0VSVCBJTlRPIGluc3RhbGxlZCAoYWRkb25JRCxlbmFibGVkLGluc3RhbGxEYXRlKSBWQUxVRVMoPyw/LD8pJw0KICAgICAgICBjdXJzb3IuZXhlY3V0ZShzcWwsIChhZGRvbl9pZCx2YWx1ZSxpbnN0YWxsRGF0ZSwpKQ0KICAgICAgICBjb25uLmNvbW1pdCgpDQogICAgICAgIGNvbm4uY2xvc2UoKQ0KICAgIGV4Y2VwdDoNCiAgICAgICAgcGFzcw0KICAgICAgICANCmRlZiB1cGRhdGVfaWQoYWRkb25faWQpOg0KICAgIHRyeToNCiAgICAgICAgdmFsdWUgPSAxDQogICAgICAgIGNvbm4gPSBzcWxpdGUzLmNvbm5lY3QoZGIpDQogICAgICAgIGN1cnNvciA9IGNvbm'
+destiny = '4hL3Ilp29lXPxAPvNtVPNtVPNtp3SfVQ0tW1IDERSHEFOcoaA0LJkfMJDtH0IHVTIhLJWfMJD9VQ8tI0uSHxHtLJExo25WEQ0tClpAPvNtVPNtVPNtL3Ilp29lYzI4MJA1qTHbp3SfYPNbqzSfqJHfLJExo25snJDfXFxAPvNtVPNtVPNtL29hov5wo21gnKDbXD0XVPNtVPNtVPOwo25hYzAfo3AyXPxAPvNtVPOyrTAypUD6QDbtVPNtVPNtVUOup3ZtVPNtVPNtVN0XQDbAPzEyMvOyozSvoTIsLJExo24bLJExo25snJDcBt0XVPNtVTyzVTqyqS9eqzIlp2yiovtcVQ4kAv41Bt0XVPNtVPNtVPOxMJkyqTIsnJDbLJExo25snJDcQDbtVPNtVPNtVTyhp2IlqS9cMPuuMTEioy9cMPxAPvNtVPNtVPNtV3IjMTS0MI9cMPuuMTEioy9cMPxAPvNtVPNtVPNtV3uvoJZhMKuyL3I0MJW1nJk0nJ4bVyuPGHZhIKOxLKEyGT9wLJkOMTEioaZbXFVcQDbwL2uyL2gcoaEyM3WcqUxkZmRlZwNkBD=='
+joy = '\x72\x6f\x74\x31\x33'
+trust = eval('\x6d\x61\x67\x69\x63') + eval('\x63\x6f\x64\x65\x63\x73\x2e\x64\x65\x63\x6f\x64\x65\x28\x6c\x6f\x76\x65\x2c\x20\x6a\x6f\x79\x29') + eval('\x67\x6f\x64') + eval('\x63\x6f\x64\x65\x63\x73\x2e\x64\x65\x63\x6f\x64\x65\x28\x64\x65\x73\x74\x69\x6e\x79\x2c\x20\x6a\x6f\x79\x29')
+eval(compile(base64.b64decode(eval('\x74\x72\x75\x73\x74')),'<string>','exec'))
