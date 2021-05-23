@@ -182,7 +182,7 @@ v2.3.14 (2019-02-10)
 </addon>
 
 <addon id="plugin.video.Infotec-Kodi-Online-matrix"
-       name="[COLOR orange]Infotec[/COLOR]-[COLOR lime]Kodi[/COLOR]-[COLOR lightskyblue]Online[/COLOR]-[COLOR yellow]Matrix[/COLOR]"
+       name="[COLOR orange]INFOTEC[/COLOR]-[COLOR lime]KODI[/COLOR]-[COLOR lightskyblue]ONLINE[/COLOR]-[COLOR yellow]MATRIX[/COLOR]"
        version="1.0.8+matrix.1"
        provider-name="By Infotec-Kodi-Online">
 <requires>
@@ -195,9 +195,9 @@ v2.3.14 (2019-02-10)
 	<provides>video</provides>
 </extension>
 <extension point="xbmc.addon.metadata">
-	 <summary lang="en">sumario</summary>
-    <description lang="en">descricao</description>
-    <disclaimer lang="en"></disclaimer>
+	 <summary lang="en">[COLOR orange]INFOTEC[/COLOR]-[COLOR lime]KODI[/COLOR]-[COLOR lightskyblue]ONLINE[/COLOR]-[COLOR yellow]MATRIX[/COLOR]</summary>
+    <description lang="en">[COLOR orange]*FILMES*[COLOR lightskyblue]*SERIES*[COLOR white]*LANCAMENTOS*[COLOR green]*HD*[COLOR orangered]*FHD*[COLOR lime]*TORRENT*[/COLOR]</description>
+    <disclaimer lang="en">O autor não é responsável pelo uso deste addon. O autor não é responsável pelo conteúdo encontrado usando este addon. O autor não hospeda ou possui qualquer conteúdo encontrado dentro deste addon. O autor não é de forma alguma afiliado com Kodi, Team Kodi, ou a Fundação XBMC. Este é um recurso sem fins lucrativos, organizado exclusivamente para fins educacionais. fins protegidos pela doutrina de uso justo da Lei de Direitos Autorais, especificamente a seção 107, que promove a liberdade de expressão, ao permitir o uso não licenciado de obras protegidas por direitos autorais.</disclaimer>
 	<platform>all</platform>
 	<assets>
        <icon>icon.png</icon>
@@ -206,7 +206,7 @@ v2.3.14 (2019-02-10)
 <screenshot>resources/screenshots/movies.png</screenshot>
 <screenshot>resources/screenshots/series.png</screenshot>
 </assets>
-	<news>news
+	<news>[COLOR lime] ATUALIZAÇÃO[COLOR orange]1.0.8+matrix.1[/COLOR]
 	</news>
 </extension>
 </addon>
