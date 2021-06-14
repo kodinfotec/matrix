@@ -183,7 +183,7 @@ v2.3.14 (2019-02-10)
 
 <addon id="plugin.video.Infotec-Kodi-Online-matrix"
        name="[COLOR orange]INFOTEC[/COLOR]-[COLOR lime]KODI[/COLOR]-[COLOR lightskyblue]ONLINE[/COLOR]-[COLOR yellow]MATRIX[/COLOR]"
-       version="1.0.8+matrix.1"
+       version="1.0.9+matrix.1"
        provider-name="By Infotec-Kodi-Online">
 <requires>
     <import addon="xbmc.python" version="3.0.0"/>
@@ -511,6 +511,27 @@ v0.5.0 (2020-06-25)
   </extension>
 </addon>
 
+<addon id="script.module.slyguy" name="SlyGuy Common" provider-name="SlyGuy" version="0.32.7">
+  <requires>
+    <import addon="repository.slyguy"/>
+  </requires>
+  <extension point="xbmc.service" library="service.py" start="login" />
+  <extension point="xbmc.python.pluginsource" library="default.py" />
+  <extension point="xbmc.python.module" library="resources/modules" />
+  <extension point="xbmc.addon.metadata">
+    <description lang="en">Common code used by all Slyguy add-ons</description>
+    <reuselanguageinvoker>true</reuselanguageinvoker>
+    <license></license>
+    <language></language>
+    <website></website>
+    <news></news>
+    <assets>
+      <icon>icon.png</icon>
+      <fanart>fanart.jpg</fanart>
+    </assets>
+  </extension>
+</addon>
+
 <addon id="service.xbmc.versioncheck" name="Version Check" version="0.5.14+matrix.1" provider-name="Team Kodi">
     <requires>
         <import addon="xbmc.python" version="3.0.0"/>
@@ -630,6 +651,27 @@ v0.5.0 (2020-06-25)
         <website>https://kodi.tv</website>
         <source>https://github.com/XBMC-Addons/service.xbmc.versioncheck</source>
     </extension>
+</addon>
+
+<addon id="slyguy.pluto.tv.provider" name="Pluto TV" provider-name="SlyGuy" version="0.4.2">
+  <requires>
+    <import addon="script.module.slyguy"/>
+  </requires>
+  <extension point="xbmc.python.pluginsource" library="default.py" provides="video">
+    <provides>video</provides>
+  </extension>
+  <extension point="xbmc.addon.metadata">
+    <description lang="en">Watch all your favourite Pluto TV channels live anywhere. No subscription required.</description>
+    <reuselanguageinvoker>true</reuselanguageinvoker>
+    <license></license>
+    <language></language>
+    <website></website>
+    <news>Add alternative stream selection</news>
+    <assets>
+      <icon>icon.png</icon>
+      <fanart>fanart.jpg</fanart>
+    </assets>
+  </extension>
 </addon>
 
 <addon id="xbmc.python2" version="3.0.0" provider-name="Team Kodi">
