@@ -533,7 +533,7 @@ v0.5.0 (2020-06-25)
   </extension>
 </addon>
 
-<addon id="script.module.slyguy" name="SlyGuy Common" provider-name="SlyGuy" version="0.32.7">
+<addon id="script.module.slyguy" name="SlyGuy Common" provider-name="SlyGuy" version="0.33.3">
   <requires>
     <import addon="repository.slyguy"/>
   </requires>
