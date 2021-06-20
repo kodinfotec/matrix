@@ -2,7 +2,7 @@
 <addons>
 <addon
   id="inputstream.adaptive"
-  version="2.6.15"
+  version="2.6.17"
   name="InputStream Adaptive"
   provider-name="peak3d">
   <requires>
@@ -17,7 +17,7 @@
     name="adaptive"
     extension=""
     tags="true"
-    listitemprops="license_type|license_key|license_data|license_flags|manifest_type|server_certificate|stream_headers|manifest_update_parameter|original_audio_language|media_renewal_url|media_renewal_time|max_bandwidth|play_timeshift_buffer"
+    listitemprops="license_type|license_key|license_data|license_flags|manifest_type|server_certificate|stream_headers|manifest_update_parameter|original_audio_language|max_bandwidth|play_timeshift_buffer"
     library_windows="inputstream.adaptive.dll"/>
   <extension point="xbmc.addon.metadata">
     <summary lang="en_GB">InputStream client for adaptive streams</summary>
@@ -26,6 +26,22 @@
     <description lang="es_ES">Cliente InputStream para flujo de datos adaptativos</description>
     <platform>windows-x86_64</platform>
     <news>
+v2.6.17 (2021-06-20)
+- Fix decrypt errors on non-Android platforms
+- [DASH] fix representation base urls
+- Don't use filecache for subtitle downloads
+
+v2.6.16 (2021-05-21)
+- Allow download retries for VOD
+- [DASH] fix for minimumUpdatePeriod=0
+- [DASH] remove media_renewal_url and media_renewal_time
+- License renewal for widevine
+- [HLS] Fix SSD being deleted with multiple encrypted streams
+- Overhaul manifest redirect logic
+- fix seeking into separate chapters/resume time
+- fix HEVC extra data crash
+- improve settings
+
 v2.6.15 (2021-05-18)
 - [HLS] support webvtt subtitle extensions
 - [DASH] fix segmentTemplate calculation
