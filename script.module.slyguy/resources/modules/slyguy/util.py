@@ -13,7 +13,7 @@ import threading
 import socket
 from contextlib import closing
 
-from kodi_six import xbmc, xbmcgui, xbmcaddon
+from kodi_six import xbmc, xbmcgui, xbmcaddon, xbmcvfs
 from six.moves import queue
 from six.moves.urllib.parse import urlparse, urlunparse
 from six import PY2
@@ -23,6 +23,14 @@ from .language import _
 from .log import log
 from .exceptions import Error
 from .constants import WIDEVINE_UUID, WIDEVINE_PSSH, DEFAULT_WORKERS, ADDON_PROFILE, CHUNK_SIZE, ADDON_ID, COMMON_ADDON
+
+def run_plugin(path, wait=False):
+    if wait:
+        dirs, files = xbmcvfs.listdir(path)
+        return dirs, files
+    else:
+        xbmc.executebuiltin('RunPlugin({})'.format(path))
+        return [], []
 
 def fix_url(url):
     parse = urlparse(url)
@@ -35,7 +43,8 @@ def get_dns_rewrites():
     if COMMON_ADDON.getAddonInfo('id') != ADDON_ID:
         rewrites.extend(_load_rewrites(COMMON_ADDON.getAddonInfo('profile')))
 
-    log.debug('Rewrites Loaded: {}'.format(len(rewrites)))
+    if rewrites:
+        log.debug('Rewrites Loaded: {}'.format(len(rewrites)))
 
     return rewrites
 
@@ -274,6 +283,33 @@ def FileIO(file_name, method, chunksize=CHUNK_SIZE):
     else:
         return open(file_name, method, chunksize)
 
+def same_file(path_a, path_b):
+    stat_a = os.stat(path_a) if os.path.isfile(path_a) else None
+    if not stat_a:
+        return False
+
+    stat_b = os.stat(path_b) if os.path.isfile(path_b) else None
+    if not stat_b:
+        return False
+
+    return (stat_a.st_dev == stat_b.st_dev) and (stat_a.st_ino == stat_b.st_ino)
+
+def safe_copy(src, dst, del_src=False):
+    src = xbmc.translatePath(src)
+    dst = xbmc.translatePath(dst)
+
+    if not xbmcvfs.exists(src) or same_file(src, dst):
+        return
+
+    if xbmcvfs.exists(dst):
+        xbmcvfs.delete(dst)
+
+    log.debug('Copying: {} > {}'.format(src, dst))
+    xbmcvfs.copy(src, dst)
+
+    if del_src:
+        xbmcvfs.delete(src)
+
 def gzip_extract(in_path, chunksize=CHUNK_SIZE, raise_error=True):
     log.debug('Gzip Extracting: {}'.format(in_path))
     out_path = in_path + '_extract'
@@ -487,6 +523,8 @@ def get_system_arch():
         system = 'Windows'
     elif xbmc.getCondVisibility('System.Platform.IOS'):
         system = 'IOS'
+    elif xbmc.getCondVisibility('System.Platform.TVOS'):
+        system = 'TVOS'
     elif xbmc.getCondVisibility('System.Platform.Darwin'):
         system = 'Darwin'
     elif xbmc.getCondVisibility('System.Platform.Linux') or xbmc.getCondVisibility('System.Platform.Linux.RaspberryPi'):
@@ -495,10 +533,10 @@ def get_system_arch():
         system = platform.system()
 
     if system == 'Windows':
-        arch = platform.architecture()[0]
+        arch = platform.architecture()[0].lower()
     else:
         try:
-            arch = platform.machine()
+            arch = platform.machine().lower()
         except:
             arch = ''
 
@@ -517,6 +555,9 @@ def get_system_arch():
 
     elif arch == 'i686':
         arch = 'i386'
+
+    if 'appletv' in arch:
+        arch = 'arm64'
 
     log.debug('System: {}, Arch: {}'.format(system, arch))
 
