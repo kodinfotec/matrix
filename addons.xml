@@ -2,7 +2,7 @@
 <addons>
 <addon
   id="inputstream.adaptive"
-  version="2.6.17"
+  version="2.6.18"
   name="InputStream Adaptive"
   provider-name="peak3d">
   <requires>
@@ -17,7 +17,7 @@
     name="adaptive"
     extension=""
     tags="true"
-    listitemprops="license_type|license_key|license_data|license_flags|manifest_type|server_certificate|stream_headers|manifest_update_parameter|original_audio_language|max_bandwidth|play_timeshift_buffer"
+    listitemprops="license_type|license_key|license_data|license_flags|manifest_type|server_certificate|stream_headers|manifest_update_parameter|original_audio_language|max_bandwidth|play_timeshift_buffer|pre_init_data"
     library_windows="inputstream.adaptive.dll"/>
   <extension point="xbmc.addon.metadata">
     <summary lang="en_GB">InputStream client for adaptive streams</summary>
@@ -26,6 +26,10 @@
     <description lang="es_ES">Cliente InputStream para flujo de datos adaptativos</description>
     <platform>windows-x86_64</platform>
     <news>
+v2.6.18 (2021-07-13)
+- Add support to pre-initialise DRM
+- Fix intermittent crash when stopping Widevine videos
+
 v2.6.17 (2021-06-20)
 - Fix decrypt errors on non-Android platforms
 - [DASH] fix representation base urls
@@ -422,6 +426,28 @@ provider-name="Infotec - Kodi - Online">
     <fanart>fanart.jpg</fanart>
   </assets>
 </extension>
+</addon>
+
+<addon id="repository.resolveurl" name="ResolveURL Repository" provider-name="gujal" version="1.0.0">
+  <extension point="xbmc.addon.repository" name="ResolveURL Repository">
+    <dir>
+      <info compressed="false">https://raw.githubusercontent.com/Gujal00/smrzips/master/addons.xml</info>
+      <checksum>https://raw.githubusercontent.com/Gujal00/smrzips/master/addons.xml.md5</checksum>
+      <datadir zip="true">https://raw.githubusercontent.com/Gujal00/smrzips/master/zips/</datadir>
+    </dir>
+  </extension>
+  <extension point="xbmc.addon.metadata">
+    <platform>all</platform>
+    <description lang="en_GB">ResolveURL and Link Tester</description>
+    <license></license>
+    <language></language>
+    <website></website>
+    <news></news>
+    <assets>
+      <icon>icon.png</icon>
+      <fanart>fanart.jpg</fanart>
+    </assets>
+  </extension>
 </addon>
 
 <addon id="repository.slyguy" name="SlyGuy Repository" provider-name="SlyGuy" version="0.0.2">
