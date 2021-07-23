@@ -383,7 +383,7 @@ provider-name="Infotec - Kodi - Online">
 </addon>
 
 <addon id="repository.kodinfotec.matrix"
-version="2.4.3"
+version="2.4.4"
 name="[COLOR maroon]Repositorio[/COLOR] [COLOR orange]Kodi[/COLOR][COLOR yellow]nfotec[/COLOR] [COLOR cyan]Matrix[/COLOR]"
 provider-name="Infotec - Kodi - Online">
 <requires>
