@@ -235,7 +235,7 @@ v2.3.14 (2019-02-10)
 <screenshot>resources/screenshots/movies.png</screenshot>
 <screenshot>resources/screenshots/series.png</screenshot>
 </assets>
-	<news>[COLOR lime] ATUALIZAÇÃO[COLOR orange]1.0.8+matrix.1[/COLOR]
+	<news>[COLOR lime]ATUALIZAÇÃO[COLOR orange]1.0.9+matrix.1[/COLOR]
 	</news>
 </extension>
 </addon>
@@ -266,7 +266,7 @@ provider-name="Infotec - Kodi - Online">
 </addon>
 
 <addon id="plugin.video.kodi.online.originais"
-version="22.07.2021"
+version="23.07.21"
 name="[COLOR orange]Kodi [COLOR blue]Online [COLOR lime]Originais [COLOR yellow]Matrix[/COLOR]"
 provider-name="Infotec - Kodi - Online">
 <requires>
