@@ -39,4 +39,14 @@
 	<setting label="Executar Youtube" id="ytbmode" type="enum" values="Interno 1|Interno 2|Externo" default="1" />	
     <setting label="Use Miniaturas como Fanart" id="use_thumb" type="bool" default="false" />
 </category>
+<category label="Apoio">
+	<setting label="[COLOR lightblue]Suporte:[/COLOR]" type="lsep"/>
+    <setting label="[COLOR orange]INFOTEC[/COLOR]-[COLOR lime]KODI[/COLOR]-[COLOR lightskyblue]ONLINE[/COLOR]: Site" type="action" action="RunScript(plugin.video.Infotec-Kodi-Online-matrix, supportsite)"/>
+    <setting label="[COLOR orange]INFOTEC[/COLOR]-[COLOR lime]KODI[/COLOR]-[COLOR lightskyblue]ONLINE[/COLOR]: Facebook" type="action" action="RunScript(plugin.video.Infotec-Kodi-Online-matrix, supportfacebook)"/>
+    <setting label="[COLOR orange]INFOTEC[/COLOR]-[COLOR lime]KODI[/COLOR]-[COLOR lightskyblue]ONLINE[/COLOR]: Telegram" type="action" action="RunScript(plugin.video.Infotec-Kodi-Online-matrix, supporttelegram)"/>
+	<setting label="[COLOR lightblue]Doação:[/COLOR]" type="lsep"/>
+    <setting label="[COLOR orange]INFOTEC[/COLOR]-[COLOR lime]KODI[/COLOR]-[COLOR lightskyblue]ONLINE[/COLOR]: [COLOR steelblue]Mercado[/COLOR][COLOR skyblue]Pago[/COLOR]" type="action" action="RunScript(plugin.video.Infotec-Kodi-Online-matrix, donatemercadopago)"/>
+    <setting label="[COLOR orange]INFOTEC[/COLOR]-[COLOR lime]KODI[/COLOR]-[COLOR lightskyblue]ONLINE[/COLOR]: [COLOR white]Pag[/COLOR][COLOR lime]Seguro[/COLOR]" type="action" action="RunScript(plugin.video.Infotec-Kodi-Online-matrix, donatepagbank)"/>
+    <setting label="[COLOR orange]INFOTEC[/COLOR]-[COLOR lime]KODI[/COLOR]-[COLOR lightskyblue]ONLINE[/COLOR]: [COLOR lime]PicPay[/COLOR]" type="action" action="RunScript(plugin.video.Infotec-Kodi-Online-matrix, donatepicpay)"/>
+</category>
 </settings>
