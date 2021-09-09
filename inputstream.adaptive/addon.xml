@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <addon
   id="inputstream.adaptive"
-  version="2.6.20"
+  version="2.6.23"
   name="InputStream Adaptive"
   provider-name="peak3d">
   <requires>
@@ -21,6 +21,17 @@
   <extension point="xbmc.addon.metadata">
     <platform>windows-x86_64</platform>
     <news>
+v2.6.23 (2021-08-06)
+- Translations from weblate - de_de, ja_jp, ko_kr
+ - [Android] use multiple drm sessions (solves stuttering)
+ - [DASH] allow for misaligned segs in SegmentTimeline
+
+v2.6.22 (2021-07-18)
+- Automation test release
+
+v2.6.21 (2021-07-18)
+- Automation test release
+
 v2.6.20 (2021-07-17)
 Translations updates from Weblate
 	- de_de, el_gr, es_es, fr_fr, he_il, hi_in, hr_hr, hu_hu, it_it, ja_jp, ko_kr, nl_nl, pl_pl, ro_ro, ru_ru, sk_sk, sv_se
@@ -201,9 +212,15 @@ v2.3.15 (2019-02-11)
 v2.3.14 (2019-02-10)
 - Add WebM container parser
     </news>
+    <summary lang="de_DE">InputStream-Client für adaptive Streams</summary>
     <summary lang="en_GB">InputStream client for adaptive streams</summary>
     <summary lang="es_ES">Cliente InputStream para flujo de datos adaptativos</summary>
+    <summary lang="ko_KR">가변 스트림을 위한 InputStream 클라이언트</summary>
+    <summary lang="pl_PL">Klient InputStream dla strumieni adaptacyjnych</summary>
+    <description lang="de_DE">InputStream-Client für adaptive Streams</description>
     <description lang="en_GB">InputStream client for adaptive streams</description>
     <description lang="es_ES">Cliente InputStream para flujo de datos adaptativos</description>
+    <description lang="ko_KR">가변 스트림을 위한 InputStream 클라이언트</description>
+    <description lang="pl_PL">Klient InputStream dla strumieni adaptacyjnych</description>
   </extension>
 </addon>
