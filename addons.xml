@@ -680,6 +680,42 @@ provider-name="Infotec - Kodi - Online">
 </extension>
 </addon>
 
+<addon id="plugin.video.plutotv" version="1.5.6" name="Pluto TV" provider-name="Lunatixz">
+    <requires>
+        <import addon="xbmc.python" version="3.0.0"/>
+        <import addon="script.module.six" version="1.0.0"/>
+        <import addon="script.module.kodi-six" version="0.1.3.1"/>
+        <import addon="script.module.requests" version="2.7.0"/>
+        <import addon="script.module.simplecache" version="1.0.0"/>
+        <import addon="script.module.routing" version="0.2.3"/>
+        <import addon="script.module.inputstreamhelper" version="0.3.3"/>
+        <import addon="service.iptv.manager" version="0.2.2" optional="true"/>
+    </requires>
+    <extension point="xbmc.python.pluginsource" library="default.py">
+        <provides>video</provides>
+    </extension>
+    <extension point="xbmc.service" library="pseudotv_recommended.py"/>
+    <extension point="xbmc.addon.metadata">
+        <reuselanguageinvoker>true</reuselanguageinvoker>
+        <summary lang="en_GB">TV channels devoted to your favorite things, made from blockbuster movies from Paramount, ... “The genius of Pluto TV: This is real internet television”.</summary>
+        <description lang="en_GB">Watch Free TV on Kodi! Stream Pluto TV's 100+ channels of news, sports, and the Internet's best, completely free on your Kodi device.</description>
+        <platform>all</platform>
+        <license>GPL-3.0-or-later</license>
+        <source>https://github.com/Lunatixz/KODI_Addons/tree/master/plugin.video.plutotv</source>
+        <website>http://pluto.tv/</website>
+        <forum>http://forum.kodi.tv/showthread.php?tid=315513</forum>
+        <news>v1.5.0[CR]- Matrix Support[CR]</news>
+        <assets>
+            <icon>resources/images/icon.png</icon>
+            <fanart>resources/images/fanart.jpg</fanart>
+            <screenshot>resources/images/screenshot01.jpg</screenshot>
+            <screenshot>resources/images/screenshot02.jpg</screenshot>
+            <screenshot>resources/images/screenshot03.jpg</screenshot>
+            <screenshot>resources/images/screenshot04.jpg</screenshot>
+        </assets>
+    </extension>
+</addon>
+
 <addon id="plugin.video.smr_link_tester" version="1.1.5" name="SMR Link Tester" provider-name="gujal">
     <requires>
         <!-- <import addon="xbmc.python" version="3.0.0"/> -->
@@ -807,6 +843,35 @@ provider-name="Infotec - Kodi - Online">
     <fanart>fanart.jpg</fanart>
   </assets>
 </extension>
+</addon>
+
+<addon id="repository.lunatixz" name="Lunatixz Beta Repository (Matrix)" version="1.1.0" provider-name="Lunatixz">
+    <extension point="xbmc.addon.repository" name="Lunatixz Matrix Beta Repository">
+        <dir>
+          <info compressed="false">https://raw.githubusercontent.com/Lunatixz/KODI_Addons/master/addons.xml</info>
+          <checksum>https://raw.githubusercontent.com/Lunatixz/KODI_Addons/master/addons.xml.md5</checksum>
+          <datadir zip="true">https://raw.githubusercontent.com/Lunatixz/KODI_Addons/master/zips</datadir>
+        </dir>
+        <dir>
+          <info compressed="false">https://raw.githubusercontent.com/PseudoTV/PseudoTV_Live/master/addons.xml</info>
+          <checksum>https://raw.githubusercontent.com/PseudoTV/PseudoTV_Live/master/addons.xml.md5</checksum>
+          <datadir zip="true">https://raw.githubusercontent.com/PseudoTV/PseudoTV_Live/master/zips</datadir>
+        </dir>
+        <dir>
+          <info compressed="false">https://raw.githubusercontent.com/PseudoTV/PseudoTV_Resources/master/addons.xml</info>
+          <checksum>https://raw.githubusercontent.com/PseudoTV/PseudoTV_Resources/master/addons.xml.md5</checksum>
+          <datadir zip="true">https://raw.githubusercontent.com/PseudoTV/PseudoTV_Resources/master/zips</datadir>
+        </dir>
+    </extension>
+    <extension point="xbmc.addon.metadata">
+        <summary lang="en_GB">Matrix Repository</summary>
+        <description lang="en_GB">Matrix Repository, for older Kodi builds install Leia or Jarvis Repository</description>
+        <platform>all</platform>
+        <source>https://github.com/Lunatixz/KODI_Addons</source>
+        <assets>
+            <icon>icon.png</icon>
+        </assets>
+    </extension>
 </addon>
 
 <addon id="repository.resolveurl" name="ResolveURL Repository" provider-name="gujal" version="1.0.0">
