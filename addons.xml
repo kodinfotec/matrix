@@ -655,7 +655,7 @@ provider-name="Infotec - Kodi - Online">
 </addon>
 
 <addon id="plugin.video.kodi.online.originais"
-version="0.0.17"
+version="0.0.18"
 name="[COLOR orange]Kodi [COLOR blue]Online [COLOR lime]Originais [COLOR yellow]Matrix[/COLOR]"
 provider-name="Infotec - Kodi - Online">
 <requires>
