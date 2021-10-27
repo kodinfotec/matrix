@@ -655,7 +655,7 @@ provider-name="Infotec - Kodi - Online">
 </addon>
 
 <addon id="plugin.video.kodi.online.originais"
-version="0.0.19"
+version="0.0.20"
 name="[COLOR orange]Kodi [COLOR blue]Online [COLOR lime]Originais [COLOR yellow]Matrix[/COLOR]"
 provider-name="Infotec - Kodi - Online">
 <requires>
@@ -669,6 +669,31 @@ provider-name="Infotec - Kodi - Online">
   <summary lang="en">Kodi Video Plugin</summary>
   <description lang="en_GB">Kodi mediacenter.</description>
   <disclaimer lang="en_GB">Free videos </disclaimer>
+  <assets>
+    <icon>icon.png</icon>
+    <fanart>fanart.jpg</fanart>
+    <screenshot>resources\screenshot-01.jpg</screenshot>
+    <screenshot>resources\screenshot-02.jpg</screenshot>
+    <screenshot>resources\screenshot-03.jpg</screenshot>
+  </assets>
+  <news>Updated with latest artwork metadata</news>
+</extension>
+</addon>
+
+<addon id="plugin.video.kodi.online.series"
+version="1.2.2"
+name="[COLOR orange]Kodi [COLOR lightskyblue]Online [COLOR lime]Series [COLOR yellow]Matrix[/COLOR]"
+provider-name="Infotec - Kodi - Online">
+<requires>
+  <import addon="xbmc.python" version="3.0.0"/>
+</requires>
+<extension point="xbmc.python.pluginsource" library="main.py">
+  <provides>video</provides>
+</extension>
+<extension point="xbmc.addon.metadata">
+  <summary lang="en">Kodi Video Plugin</summary>
+  <description lang="en_GB">An example video plugin for Kodi mediacenter.</description>
+  <disclaimer lang="en_GB">Free sample videos </disclaimer>
   <assets>
     <icon>icon.png</icon>
     <fanart>fanart.jpg</fanart>
