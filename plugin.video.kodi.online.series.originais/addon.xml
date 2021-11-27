@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <addon id="plugin.video.kodi.online.series.originais"
-version="0.0.1"
-name="[COLOR orange]Kodi [COLOR blue]Online [COLOR lime]Originais [COLOR white]SÉRIES[/COLOR] [COLOR yellow]Matrix[/COLOR]"
+version="0.0.01"
+name="[COLOR orange]Kodi [COLOR blue]Online [COLOR lime]Originais [COLOR white]Séries[/COLOR] [COLOR yellow]Matrix[/COLOR]"
 provider-name="Infotec - Kodi - Online">
 <requires>
   <import addon="xbmc.python" version="3.0.0"/>
