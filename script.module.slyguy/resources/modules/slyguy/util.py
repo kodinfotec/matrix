@@ -1,4 +1,5 @@
 import os
+import sys
 import hashlib
 import shutil
 import platform
@@ -11,18 +12,25 @@ import gzip
 import re
 import threading
 import socket
+import binascii
 from contextlib import closing
 
 from kodi_six import xbmc, xbmcgui, xbmcaddon, xbmcvfs
-from six.moves import queue
+from six.moves import queue, range
 from six.moves.urllib.parse import urlparse, urlunparse
 from six import PY2
 import requests
 
+if sys.version_info >= (3, 8):
+    import html
+else:
+    from six.moves.html_parser import HTMLParser
+    html = HTMLParser()
+
 from .language import _
 from .log import log
 from .exceptions import Error
-from .constants import WIDEVINE_UUID, WIDEVINE_PSSH, DEFAULT_WORKERS, ADDON_PROFILE, CHUNK_SIZE, ADDON_ID, COMMON_ADDON
+from .constants import *
 
 def run_plugin(path, wait=False):
     if wait:
@@ -36,48 +44,6 @@ def fix_url(url):
     parse = urlparse(url)
     parse = parse._replace(path=re.sub('/{2,}','/',parse.path))
     return urlunparse(parse)
-
-def get_dns_rewrites():
-    rewrites = _load_rewrites(ADDON_PROFILE)
-
-    if COMMON_ADDON.getAddonInfo('id') != ADDON_ID:
-        rewrites.extend(_load_rewrites(COMMON_ADDON.getAddonInfo('profile')))
-
-    if rewrites:
-        log.debug('Rewrites Loaded: {}'.format(len(rewrites)))
-
-    return rewrites
-
-def _load_rewrites(directory):
-    rewrites = []
-
-    file_path = os.path.join(xbmc.translatePath(directory), 'dns_rewrites.txt')
-    if not os.path.exists(file_path):
-        return rewrites
-
-    try:
-        with open(file_path, 'r') as f:
-            while True:
-                entry = f.readline()
-                if not entry: # end of file
-                    break
-
-                try:
-                    ip, pattern = entry.split(None, 1)
-                except:
-                    continue
-
-                pattern = pattern.strip()
-                ip = ip.strip()
-                if not pattern or not ip:
-                    continue
-
-                rewrites.append((pattern, ip))
-    except Exception as e:
-        log.debug('DNS Rewrites Failed: {}'.format(file_path))
-        log.exception(e)
-
-    return rewrites
 
 def url_sub(url):
     file_path = os.path.join(ADDON_PROFILE, 'url_subs.txt')
@@ -284,6 +250,9 @@ def FileIO(file_name, method, chunksize=CHUNK_SIZE):
         return open(file_name, method, chunksize)
 
 def same_file(path_a, path_b):
+    if path_a.lower().strip() == path_b.lower().strip():
+        return True
+
     stat_a = os.stat(path_a) if os.path.isfile(path_a) else None
     if not stat_a:
         return False
@@ -292,7 +261,7 @@ def same_file(path_a, path_b):
     if not stat_b:
         return False
 
-    return (stat_a.st_dev == stat_b.st_dev) and (stat_a.st_ino == stat_b.st_ino)
+    return (stat_a.st_dev == stat_b.st_dev) and (stat_a.st_ino == stat_b.st_ino) and (stat_a.st_mtime == stat_b.st_mtime)
 
 def safe_copy(src, dst, del_src=False):
     src = xbmc.translatePath(src)
@@ -302,10 +271,15 @@ def safe_copy(src, dst, del_src=False):
         return
 
     if xbmcvfs.exists(dst):
-        xbmcvfs.delete(dst)
+        if xbmcvfs.delete(dst):
+            log.debug('Deleted: {}'.format(dst))
+        else:
+            log.debug('Failed to delete: {}'.format(dst))
 
-    log.debug('Copying: {} > {}'.format(src, dst))
-    xbmcvfs.copy(src, dst)
+    if xbmcvfs.copy(src, dst):
+        log.debug('Copied: {} > {}'.format(src, dst))
+    else:
+        log.debug('Failed to copy: {} > {}'.format(src, dst))
 
     if del_src:
         xbmcvfs.delete(src)
@@ -336,7 +310,7 @@ def xz_extract(in_path, chunksize=CHUNK_SIZE, raise_error=True):
 
     import lzma
 
-    log.debug('Gzip Extracting: {}'.format(in_path))
+    log.debug('XZ Extracting: {}'.format(in_path))
     out_path = in_path + '_extract'
 
     try:
@@ -563,24 +537,15 @@ def get_system_arch():
 
     return system, arch
 
-def strip_namespaces(tree):
-    for el in tree.iter():
-        tag = el.tag
-        if tag and isinstance(tag, str) and tag[0] == '{':
-            el.tag = tag.partition('}')[2]
-        attrib = el.attrib
-        if attrib:
-            for name, value in list(attrib.items()):
-                if name and isinstance(name, str) and name[0] == '{':
-                    del attrib[name]
-                    attrib[name.partition('}')[2]] = value
-
-def cenc_init(data=None, uuid=None, kids=None):
+def cenc_init(data=None, uuid=None, kids=None, version=None):
     data = data or bytearray()
     uuid = uuid or WIDEVINE_UUID
     kids = kids or []
 
     length = len(data) + 32
+
+    if version == 0:
+        kids = []
 
     if kids:
         #each kid is 16 bytes (+ 4 for kid count)
@@ -683,6 +648,34 @@ def cenc_version1to0(cenc):
 
     return cenc_init(data)
 
+def replace_kids(cenc, kids, version0=False):
+    uuid, version, old_data, old_kids = parse_cenc_init(cenc)
+
+    old_data = binascii.hexlify(old_data).decode('utf8')
+    if '1210' in old_data:
+        pre_data = re.search('^([0-9a-z]*?)1210', old_data)
+        pre_data = pre_data.group(1) if pre_data else ''
+
+        old_data = old_data.replace(pre_data, '')
+        for match in re.findall('1210[0-9a-z]{32}', old_data):
+            old_data = old_data.replace(match, '')
+
+        data = pre_data
+        new_kids = []
+        for kid in kids:
+            kid = kid.replace('-', '').replace(' ','').strip() if kid else None
+            if not kid or kid in data:
+                continue
+
+            data += '1210' + kid
+            new_kids.append(bytearray.fromhex(kid))
+
+        data += old_data
+    else:
+        data = data
+
+    return cenc_init(bytearray.fromhex(data), uuid, new_kids, 0 if version0 else version)
+
 def pthms_to_seconds(duration):
     if not duration:
         return None
@@ -697,3 +690,45 @@ def pthms_to_seconds(duration):
             seconds += float(count) * key[1]
 
     return int(seconds)
+
+def strip_html_tags(text):
+    if not text:
+        return ''
+
+    text = re.sub('\([^\)]*\)', '', text)
+    text = re.sub('<[^>]*>', '', text)
+    text = html.unescape(text)
+    return text
+
+def chunked(lst, n):
+    for i in range(0, len(lst), n):
+        yield lst[i:i + n]
+
+def lang_allowed(lang, lang_list):
+    if not lang_list:
+        return True
+
+    lang = fix_language(lang)
+    if not lang:
+        return False
+
+    for _lang in lang_list:
+        _lang = fix_language(_lang)
+        if not _lang:
+            continue
+
+        if lang.startswith(_lang):
+            return True
+
+    return False
+
+def fix_language(language=None):
+    if not language:
+        return None
+
+    language = language.lower().strip()
+    split = language.split('-')
+    if len(split) > 1 and split[1].lower() == split[0].lower():
+        return split[0]
+
+    return language

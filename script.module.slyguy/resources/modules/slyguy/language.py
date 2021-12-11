@@ -3,22 +3,35 @@ from kodi_six import xbmc
 from .log import log
 from .constants import ADDON, COMMON_ADDON
 
-def format_string(string, _bold=False, _label=False, _color=None, _strip=False, **kwargs):
-    if kwargs:
-        string = string.format(**kwargs)
+def format_string(string, *args, **kwargs):
+    style = {}
 
-    if _strip:
+    if kwargs:
+        for key in list(kwargs.keys()):
+            if key.startswith('_'):
+                style[key.lstrip('_')] = kwargs.pop(key)
+
+    if args or kwargs:
+        try:
+            string = string.format(*args, **kwargs)
+        except Exception as e:
+            log.debug('failed to format string: {} ({})'.format(string, e))
+
+    if not style:
+        return string
+
+    if style.get('strip'):
         string = string.strip()
 
-    if _label:
-        _bold = True
+    if style.get('label'):
+        style['bold'] = True
         string = u'~ {} ~'.format(string)
 
-    if _bold:
+    if style.get('bold'):
         string = u'[B]{}[/B]'.format(string)
 
-    if _color:
-        string = u'[COLOR {}]{}[/COLOR]'.format(_color, string)
+    if 'color' in style:
+        string = u'[COLOR {}]{}[/COLOR]'.format(style['color'], string)
 
     return string
 
@@ -109,7 +122,7 @@ class BaseLanguage(object):
     QUALITY_FPS                 = 32069
     SELECT_WV_VERSION           = 32070
     WV_UNKNOWN                  = 32071
-    WV_NOT_LATEST               = 32072
+    DEFAULT_LANGUAGE            = 32072
     DISABLED                    = 32073
     QUALITY_HTTP_ERROR          = 32074
     IA_ANDROID_REINSTALL        = 32075
@@ -157,14 +170,34 @@ class BaseLanguage(object):
     RENAME_BOOKMARK             = 32117
     XZ_ERROR                    = 32118
     INSTALLING_APT_IA           = 32119
-    FOLDERS_FOR_SHOW_SERIES     = 32120
-    IA_TESTING_NOT_AVAILABLE    = 32121
+
+    DEFAULT_SUBTITLE            = 32121
     WV_REVOKED                  = 32122
     WV_REVOKED_CONFIRM          = 32123
     WV_FAILED                   = 32124
     IA_TVOS_ERROR               = 32125
     NEW_SEARCH                  = 32126
     REMOVE_SEARCH               = 32127
+    NEWS_HEADING                = 32128
+
+    PLAY_FROM_LIVE_CONTEXT      = 32130
+    ASK_EMAIL                   = 32131
+    ASK_PASSWORD                = 32132
+    DEVICE_CODE                 = 32133
+    EMAIL_PASSWORD              = 32134
+    DEVICE_LINK_STEPS           = 32135
+    WV_UNSUPPORTED_OS           = 32136
+    WV_UNSUPPORTED_OS_CONFIRM   = 32137
+    DONATIONS                   = 32138
+    LOOK_AND_FEEL               = 32139
+    DONATE_HEADER               = 32140
+    SEASON                      = 32141
+    IA_LINUX_MISSING            = 32142
+
+    LANGUAGE                    = 304
+    RESUME_FROM                 = 12022
+    PLAY_FROM_BEGINNING         = 12021
+    AUTO                        = 16316
 
     def __getattribute__(self, name):
         attr = object.__getattribute__(self, name)
@@ -173,10 +206,10 @@ class BaseLanguage(object):
 
         return addon_string(attr)
 
-    def __call__(self, string, **kwargs):
+    def __call__(self, string, *args, **kwargs):
         if isinstance(string, int):
             string = addon_string(string)
 
-        return format_string(string, **kwargs)
+        return format_string(string, *args, **kwargs)
 
 _ = BaseLanguage()

@@ -6,50 +6,21 @@ from contextlib import contextmanager
 
 from six.moves.urllib_parse import quote, urlparse
 from kodi_six import xbmcgui, xbmc
-from slyguy.util import set_kodi_string, hash_6, get_dns_rewrites
 
+from . import settings
 from .constants import *
 from .exceptions import GUIError
 from .router import add_url_args, url_for
 from .language import _
-from . import settings
-from .util import url_sub, fix_url
+from .dns import get_dns_rewrites
+from .util import url_sub, fix_url, set_kodi_string, hash_6
 
 def _make_heading(heading=None):
     return heading if heading else ADDON_NAME
 
-def notification(message, heading=None, icon=None, time=3000, sound=False):
-    heading = _make_heading(heading)
-    icon    = ADDON_ICON if not icon else icon
-
-    xbmcgui.Dialog().notification(heading, message, icon, time, sound)
-
 def refresh():
+    set_kodi_string('slyguy_refresh', '1')
     xbmc.executebuiltin('Container.Refresh')
-
-def select(heading=None, options=None, autoclose=None, multi=False, **kwargs):
-    heading = _make_heading(heading)
-    options = options or []
-
-    if KODI_VERSION < 18:
-        kwargs.pop('preselect', None) # preselect breaks cancel in 17
-        if KODI_VERSION < 17:
-            kwargs.pop('useDetails', None) # useDetails added in 17
-
-    if autoclose:
-        kwargs['autoclose'] = autoclose
-
-    _options = []
-    for option in options:
-        if issubclass(type(option), Item):
-            option = option.label if KODI_VERSION < 17 else option.get_li()
-
-        _options.append(option)
-
-    if multi:
-        return xbmcgui.Dialog().multiselect(heading, _options, **kwargs)
-    else:
-        return xbmcgui.Dialog().select(heading, _options, **kwargs)
 
 def redirect(location):
     xbmc.executebuiltin('Container.Update({},replace)'.format(location))
@@ -126,6 +97,14 @@ def progressbg(message='', heading=None, percent=0):
     return dialog
 
 @contextmanager
+def busy():
+    xbmc.executebuiltin('ActivateWindow(busydialognocancel)')
+    try:
+        yield
+    finally:
+        xbmc.executebuiltin('Dialog.Close(busydialognocancel)')
+
+@contextmanager
 def progress(message='', heading=None, percent=0, background=False):
     dialog = Progress(message=message, heading=heading, percent=percent, background=background)
 
@@ -133,6 +112,36 @@ def progress(message='', heading=None, percent=0, background=False):
         yield dialog
     finally:
         dialog.close()
+
+def notification(message, heading=None, icon=None, time=3000, sound=False):
+    heading = _make_heading(heading)
+    icon    = ADDON_ICON if not icon else icon
+
+    xbmcgui.Dialog().notification(heading, message, icon, time, sound)
+
+def select(heading=None, options=None, autoclose=None, multi=False, **kwargs):
+    heading = _make_heading(heading)
+    options = options or []
+
+    if KODI_VERSION < 18:
+        kwargs.pop('preselect', None) # preselect breaks cancel in 17
+        if KODI_VERSION < 17:
+            kwargs.pop('useDetails', None) # useDetails added in 17
+
+    if autoclose:
+        kwargs['autoclose'] = autoclose
+
+    _options = []
+    for option in options:
+        if issubclass(type(option), Item):
+            option = option.label if KODI_VERSION < 17 else option.get_li()
+
+        _options.append(option)
+
+    if multi:
+        return xbmcgui.Dialog().multiselect(heading, _options, **kwargs)
+    else:
+        return xbmcgui.Dialog().select(heading, _options, **kwargs)
 
 def input(message, default='', hide_input=False, **kwargs):
     if hide_input:
@@ -156,7 +165,6 @@ def ok(message, heading=None):
 
 def text(message, heading=None, **kwargs):
     heading = _make_heading(heading)
-
     return xbmcgui.Dialog().textviewer(heading, message)
 
 def yes_no(message, heading=None, autoclose=None, **kwargs):
@@ -171,11 +179,18 @@ def info(item):
     dialog = xbmcgui.Dialog()
     dialog.info(item.get_li())
 
+def context_menu(options):
+    if KODI_VERSION < 17:
+        return select(options=options)
+
+    dialog = xbmcgui.Dialog()
+    return dialog.contextmenu(options)
+
 class Item(object):
     def __init__(self, id=None, label='', path=None, playable=False, info=None, context=None,
             headers=None, cookies=None, properties=None, is_folder=None, art=None, inputstream=None,
             video=None, audio=None, subtitles=None, use_proxy=True, specialsort=None, custom=None, proxy_data=None,
-            resume_from=None, force_resume=False):
+            resume_from=None, force_resume=False, dns_rewrites=None):
 
         self.id          = id
         self.label       = label
@@ -192,6 +207,7 @@ class Item(object):
         self.playable    = playable
         self.inputstream = inputstream
         self.proxy_data  = proxy_data or {}
+        self.dns_rewrites = dns_rewrites or {}
         self.mimetype    = None
         self._is_folder  = is_folder
         self.specialsort = specialsort #bottom, top
@@ -212,29 +228,22 @@ class Item(object):
     def is_folder(self, value):
         self._is_folder = value
 
-    def get_url_headers(self):
-        headers = {}
-        for key in self.headers:
-            headers[key.lower()] = self.headers[key]
-
-        if 'connection-timeout' not in headers:
-            headers['connection-timeout'] = settings.getInt('http_timeout', 30)
-
-        if 'verifypeer' not in headers and not settings.getBool('verify_ssl', True):
-            headers['verifypeer'] = 'false'
-
+    def get_url_headers(self, headers=None, cookies=None):
         string = ''
-        for key in self.headers:
-            string += u'{0}={1}&'.format(key, quote(u'{}'.format(self.headers[key]).encode('utf8')))
+        if headers:
+            for key in headers:
+                string += u'{0}={1}&'.format(key, quote(u'{}'.format(headers[key]).encode('utf8')))
 
-        if self.cookies:
+        if cookies:
             string += 'Cookie='
-            for key in self.cookies:
-                string += u'{0}%3D{1}; '.format(key, quote(u'{}'.format(self.cookies[key]).encode('utf8')))
+            for key in cookies:
+                string += u'{0}%3D{1}; '.format(key, quote(u'{}'.format(cookies[key]).encode('utf8')))
 
-        return string.strip('&')
+        return string.strip().strip('&')
 
     def get_li(self):
+        proxy_path = settings.common_settings.get('_proxy_path')
+
         if KODI_VERSION < 18:
             li = xbmcgui.ListItem()
         else:
@@ -243,14 +252,39 @@ class Item(object):
         if self.label:
             li.setLabel(self.label)
             if not (self.info.get('plot') or '').strip():
-                self.info['plot'] = self.label
+                self.info['plot'] = '[B][/B]'
 
             if not self.info.get('title'):
                 self.info['title'] = self.label
 
         if self.info:
-            if self.info.get('mediatype') in ('tvshow','season') and settings.getBool('show_series_folders', True):
+            if self.info.get('mediatype') in ('tvshow','season') and settings.common_settings.getBool('show_series_folders', False):
                 self.info.pop('mediatype')
+
+            if self.info.get('mediatype') == 'movie':
+                self.info.pop('season', None)
+                self.info.pop('episode', None)
+                self.info.pop('tvshowtitle', None)
+
+            year = self.info.get('year') or ''
+            aired = self.info.get('aired') or ''
+            premiered = self.info.get('premiered') or ''
+            date_added = self.info.get('dateadded') or ''
+
+            if not aired and premiered:
+                self.info['aired'] = aired = premiered
+
+            if year and not aired:
+                self.info['aired'] = aired = '{}-01-01'.format(year)
+
+            if not premiered and aired:
+                self.info['premiered'] = premiered = aired
+
+            if not year and len(aired) >= 4:
+                self.info['year'] = year = aired[0:4]
+
+            if not date_added and aired:
+                self.info['dateadded'] = date_added = '{} 12:00:00'.format(aired)
 
             li.setInfo('video', self.info)
 
@@ -277,6 +311,8 @@ class Item(object):
             for key in self.art:
                 if self.art[key] and self.art[key].lower().startswith('http'):
                     self.art[key] = self.art[key].replace(' ', '%20')
+                elif self.art[key] and self.art[key].lower().startswith('plugin'):
+                    self.art[key] = proxy_path + self.art[key]
 
             li.setArt(self.art)
 
@@ -288,7 +324,8 @@ class Item(object):
         if self.context:
             li.addContextMenuItems(self.context)
 
-        if self.resume_from:
+        if self.resume_from is not None:
+            # Setting this on Kodi 18 or below removes all list item data (fixed in 19)
             self.properties['ResumeTime'] = self.resume_from
             self.properties['TotalTime'] = 1
 
@@ -299,15 +336,13 @@ class Item(object):
         for key in self.properties:
             li.setProperty(key, u'{}'.format(self.properties[key]))
 
-        headers = self.get_url_headers()
+        headers = self.get_url_headers(self.headers, self.cookies)
         mimetype = self.mimetype
-
-        proxy_path = settings.common_settings.get('_proxy_path')
 
         def get_url(url):
             _url = url.lower()
 
-            if _url.startswith('plugin://') or (_url.startswith('http') and self.use_proxy and not _url.startswith(proxy_path)):
+            if _url.startswith('plugin://') or (_url.startswith('http') and self.use_proxy and not _url.startswith(proxy_path)) and settings.common_settings.getBool('proxy_enabled', True):
                 url = u'{}{}'.format(proxy_path, url)
 
             return url
@@ -331,11 +366,14 @@ class Item(object):
                 license_url = self.inputstream.license_key
                 li.setProperty('{}.license_key'.format(self.inputstream.addon_id), u'{url}|Content-Type={content_type}&{headers}|{challenge}|{response}'.format(
                     url = get_url(self.inputstream.license_key),
-                    headers = headers,
+                    headers = self.get_url_headers(self.inputstream.license_headers) if self.inputstream.license_headers else headers,
                     content_type = self.inputstream.content_type,
                     challenge = self.inputstream.challenge,
                     response = self.inputstream.response,
                 ))
+                #If we need secure wv and IA is from kodi 18 or below, we need to force secure decoder
+                if self.inputstream.wv_secure and KODI_VERSION < 19:
+                    li.setProperty('{}.license_flags'.format(self.inputstream.addon_id), 'force_secure_decoder')
             elif headers:
                 li.setProperty('{}.license_key'.format(self.inputstream.addon_id), u'|{}'.format(headers))
 
@@ -350,26 +388,26 @@ class Item(object):
         else:
             self.inputstream = None
 
-        def make_sub(url, language='unk', mimetype=''):
-            if not url.lower().startswith('http') and not url.lower().startswith('plugin://'):
+        def make_sub(url, language='unk', mimetype='', forced=False, impaired=False):
+            if os.path.exists(xbmc.translatePath(url)):
                 return url
 
             ## using dash, we can embed subs
             if self.inputstream and self.inputstream.manifest_type == 'mpd':
                 if mimetype not in ('application/ttml+xml', 'text/vtt') and not url.lower().startswith('plugin://'):
                     ## can't play directly - covert to webvtt
-                    url = url_for(ROUTE_WEBVTT, url=url)
+                    proxy_data['middleware'][url] = {'type': MIDDLEWARE_CONVERT_SUB}
                     mimetype = 'text/vtt'
 
-                proxy_data['subtitles'].append([mimetype, language, url])
+                proxy_data['subtitles'].append([mimetype, language, url, 'forced' if forced else None, 'impaired' if impaired else None])
                 return None
 
             ## only srt or webvtt (text/) supported
             if not mimetype.startswith('text/') and not url.lower().startswith('plugin://'):
-                url = url_for(ROUTE_WEBVTT, url=url)
+                proxy_data['middleware'][url] = {'type': MIDDLEWARE_CONVERT_SUB}
                 mimetype = 'text/vtt'
 
-            proxy_url = '{}.srt'.format(language)
+            proxy_url = '{}{}.srt'.format(language, '.forced' if forced else '')
             proxy_data['path_subs'][proxy_url] = url
 
             return u'{}{}'.format(proxy_path, proxy_url)
@@ -389,6 +427,7 @@ class Item(object):
 
             proxy_data = {
                 'manifest': self.path,
+                'slug': '{}-{}'.format(ADDON_ID, sys.argv[2]),
                 'license_url': license_url,
                 'session_id': hash_6(time.time()),
                 'audio_whitelist': settings.get('audio_whitelist', ''),
@@ -396,14 +435,14 @@ class Item(object):
                 'audio_description': settings.getBool('audio_description', True),
                 'subs_forced': settings.getBool('subs_forced', True),
                 'subs_non_forced': settings.getBool('subs_non_forced', True),
-                'verify_ssl': settings.getBool('verify_ssl', True),
+                'remove_framerate': True,
                 'subtitles': [],
                 'path_subs': {},
                 'addon_id': ADDON_ID,
                 'quality': QUALITY_DISABLED,
-                'manifest_middleware': None,
+                'middleware': {},
                 'type': None,
-                'dns_rewrites': get_dns_rewrites(),
+                'dns_rewrites': get_dns_rewrites(self.dns_rewrites),
             }
 
             if mimetype == 'application/vnd.apple.mpegurl':
@@ -413,10 +452,18 @@ class Item(object):
 
             proxy_data.update(self.proxy_data)
 
+            for key in ['default_language', 'default_subtitle']:
+                value = settings.get(key, '')
+                if value:
+                    proxy_data[key] = value
+
             if self.subtitles:
                 subs = []
                 for sub in self.subtitles:
-                    sub = make_sub(*sub)
+                    if type(sub) == list:
+                        sub = make_sub(*sub)
+                    else:
+                        sub = make_sub(**sub)
                     if sub:
                         subs.append(sub)
 

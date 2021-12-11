@@ -7,17 +7,14 @@ import json
 from functools import wraps
 from six.moves.urllib_parse import quote_plus
 
-from pycaption import detect_format, WebVTTWriter
 from kodi_six import xbmc, xbmcplugin
-from six.moves.urllib.parse import quote
 
-from . import router, gui, settings, userdata, inputstream, signals, migrate, bookmarks
+from . import router, gui, settings, userdata, inputstream, signals, migrate, bookmarks, mem_cache
 from .constants import *
 from .log import log
 from .language import _
-from .session import Session
 from .exceptions import Error, PluginError, FailedPlayback
-from .util import set_kodi_string, get_addon, remove_file
+from .util import set_kodi_string, get_addon, remove_file, user_country
 
 ## SHORTCUTS
 url_for = router.url_for
@@ -64,10 +61,13 @@ def route(url=None):
         def decorated_function(*args, **kwargs):
             item = f(*args, **kwargs)
 
-            pattern = kwargs.get(ROUTE_AUTOPLAY_TAG, None)
+            autoplay = kwargs.get(ROUTE_AUTOPLAY_TAG, None)
+            autofolder = kwargs.get(ROUTE_AUTOFOLDER_TAG, None)
 
-            if pattern is not None and isinstance(item, Folder):
-                _autoplay(item, pattern)
+            if autoplay is not None and isinstance(item, Folder):
+                _autoplay(item, autoplay, playable=True)
+            elif autofolder is not None and isinstance(item, Folder):
+                _autoplay(item, autofolder, playable=False)
             elif isinstance(item, Folder):
                 item.display()
             elif isinstance(item, Item):
@@ -84,28 +84,46 @@ def route(url=None):
         return decorated_function
     return lambda f: decorator(f, url)
 
-# @plugin.plugin_callback()
-def plugin_callback():
+# @plugin.plugin_middleware()
+def plugin_middleware():
     def decorator(func):
         @wraps(func)
         def decorated_function(*args, **kwargs):
-            with open(kwargs['_data_path'], 'rb') as f:
+            kwargs['_path'] = xbmc.translatePath(kwargs['_path'])
+            with open(kwargs['_path'], 'rb') as f:
                 kwargs['_data'] = f.read()
 
-            remove_file(kwargs['_data_path'])
-            kwargs['_headers'] = json.loads(kwargs['_headers'])
+            remove_file(kwargs['_path'])
 
             try:
-                path = func(*args, **kwargs)
+                data = func(*args, **kwargs)
             except Exception as e:
                 log.exception(e)
-                path = None
+                data = None
 
-            folder = Folder()
+            folder = Folder(show_news=False)
             folder.add_item(
-                path = quote_plus(path or ''),
+                path = quote_plus(json.dumps(data or {})),
             )
+            return folder
+        return decorated_function
+    return lambda func: decorator(func)
 
+# @plugin.plugin_request()
+def plugin_request():
+    def decorator(func):
+        @wraps(func)
+        def decorated_function(*args, **kwargs):
+            try:
+                data = func(*args, **kwargs)
+            except Exception as e:
+                log.exception(e)
+                data = None
+
+            folder = Folder(show_news=False)
+            folder.add_item(
+                path = quote_plus(json.dumps(data or {})),
+            )
             return folder
         return decorated_function
     return lambda func: decorator(func)
@@ -115,8 +133,6 @@ def merge():
     def decorator(f):
         @wraps(f)
         def decorated_function(*args, **kwargs):
-            folder = Folder()
-
             result = False
             try:
                 message = f(*args, **kwargs) or ''
@@ -129,12 +145,11 @@ def merge():
             else:
                 result = True
 
+            folder = Folder(show_news=False)
             folder.add_item(
                 path = quote_plus(u'{}{}'.format(int(result), message)),
             )
-
             return folder
-
         return decorated_function
     return lambda f: decorator(f)
 
@@ -162,6 +177,7 @@ def search():
                     queries.remove(query)
 
                 queries.insert(0, query)
+                queries = queries[:MAX_SEARCH_HISTORY]
                 userdata.set('queries', queries)
                 gui.refresh()
 
@@ -212,6 +228,7 @@ def _error(e):
         signals.emit(signals.ON_EXCEPTION, e)
         return
 
+    mem_cache.empty()
     _close()
 
     log.debug(e, exc_info=True)
@@ -220,6 +237,7 @@ def _error(e):
 
 @signals.on(signals.ON_EXCEPTION)
 def _exception(e):
+    mem_cache.empty()
     _close()
 
     if type(e) == FailedPlayback:
@@ -323,20 +341,6 @@ def _settings(**kwargs):
     settings.open()
     gui.refresh()
 
-@route(ROUTE_WEBVTT)
-@plugin_callback()
-def _webvtt(url, _data_path, _headers, **kwargs):
-    r = Session().get(url, headers=_headers)
-
-    data = r.content.decode('utf8')
-    reader = detect_format(data)
-
-    data = WebVTTWriter().write(reader().read(data))
-    with open(_data_path, 'wb') as f:
-        f.write(data.encode('utf8'))
-
-    return _data_path + '|content-type=text/vtt'
-
 @route(ROUTE_RESET)
 def _reset(**kwargs):
     if not gui.yes_no(_.PLUGIN_RESET_YES_NO):
@@ -398,7 +402,7 @@ def failed_playback():
         xbmc.PlayList(xbmc.PLAYLIST_MUSIC).clear()
         xbmc.PlayList(xbmc.PLAYLIST_VIDEO).clear()
 
-def _autoplay(folder, pattern):
+def _autoplay(folder, pattern, playable=True):
     choose = 'pick'
 
     if '#' in pattern:
@@ -410,11 +414,11 @@ def _autoplay(folder, pattern):
             if choose != 'random':
                 choose = 'pick'
 
-    log.debug('Auto Play: "{}" item that label matches "{}"'.format(choose, pattern))
+    log.debug('Auto {}: "{}" item that label matches "{}"'.format('Play' if playable == True else 'Select', choose, pattern))
 
     matches = []
     for item in folder.items:
-        if not item or not item.playable:
+        if not item or item.playable != playable:
             continue
 
         if re.search(pattern, item.label, re.IGNORECASE):
@@ -453,18 +457,44 @@ def _autoplay(folder, pattern):
 default_thumb  = ADDON_ICON
 default_fanart = ADDON_FANART
 
+def resume_from(seconds):
+    if not seconds or seconds < 0:
+        return 0
+
+    minutes = seconds // 60
+    hours = minutes // 60
+    label = _(_.RESUME_FROM, '{:02d}:{:02d}:{:02d}'.format(hours, minutes % 60, seconds % 60))
+
+    index = gui.context_menu([label, _.PLAY_FROM_BEGINNING])
+    if index == -1:
+        return -1
+    elif index == 0:
+        return seconds
+    else:
+        return 0
+
+def live_or_start(seconds=1):
+    index = gui.context_menu([_.PLAY_FROM_LIVE_CONTEXT, _.PLAY_FROM_BEGINNING])
+    if index == -1:
+        return -1
+    elif index == 0:
+        return 0
+    else:
+        return seconds
+
 #Plugin.Item()
 class Item(gui.Item):
-    def __init__(self, cache_key=None, play_next=None, callback=None, geolock=None, bookmark=True, quality=None, *args, **kwargs):
+    def __init__(self, cache_key=None, play_next=None, callback=None, play_skips=None, geolock=None, bookmark=True, quality=None, *args, **kwargs):
         super(Item, self).__init__(self, *args, **kwargs)
         self.cache_key = cache_key
         self.play_next = dict(play_next or {})
-        self.callback  = dict(callback or {})
-        self.geolock   = geolock
-        self.bookmark  = bookmark
-        self.quality   = quality
+        self.callback = dict(callback or {})
+        self.play_skips = play_skips or []
+        self.geolock = geolock
+        self.bookmark = bookmark
+        self.quality = quality
 
-    def get_li(self):
+    def get_li(self, *args, **kwargs):
         # if settings.getBool('use_cache', True) and self.cache_key:
         #     url = url_for(ROUTE_CLEAR_CACHE, key=self.cache_key)
         #     self.context.append((_.PLUGIN_CONTEXT_CLEAR_CACHE, 'RunPlugin({})'.format(url)))
@@ -482,16 +512,13 @@ class Item(gui.Item):
             url = router.add_url_args(self.path, **{QUALITY_TAG: QUALITY_ASK})
             self.context.append((_.PLAYBACK_QUALITY, 'PlayMedia({},noresume)'.format(url)))
 
-        return super(Item, self).get_li()
+        return super(Item, self).get_li(*args, **kwargs)
 
     def play(self, **kwargs):
         self.playable = True
 
         quality = kwargs.get(QUALITY_TAG, self.quality)
         is_live = ROUTE_LIVE_TAG in kwargs
-
-        if is_live and self.resume_from is None and KODI_VERSION > 17:
-            self.resume_from = LIVE_HEAD
 
         if quality is None:
             quality = settings.getEnum('default_quality', QUALITY_TYPES, default=QUALITY_ASK)
@@ -502,22 +529,29 @@ class Item(gui.Item):
 
         self.proxy_data['quality'] = quality
 
-        li     = self.get_li()
+        if self.resume_from is not None and self.resume_from < 0:
+            self.play_skips.append({'to': int(self.resume_from)})
+            self.resume_from = 1
+
+        li = self.get_li()
         handle = _handle()
 
+        play_data = {
+            'playing_file': self.path,
+            'next': {'time': 0, 'next_file': None},
+            'skips': self.play_skips or [],
+            'callback': {'type': 'interval', 'interval': 0, 'callback': None},
+        }
+
         if self.play_next:
-            data = {'playing_file': self.path, 'time': 0, 'next_file': None, 'show_dialog': True}
-            data.update(self.play_next)
-
-            if data['next_file']:
-                data['next_file'] = router.add_url_args(data['next_file'], _play=1)
-
-            set_kodi_string('_slyguy_play_next', json.dumps(data))
+            play_data['next'].update(self.play_next)
+            if play_data['next']['next_file']:
+                play_data['next']['next_file'] = router.add_url_args(play_data['next']['next_file'], _play=1)
 
         if self.callback:
-            data = {'type': 'interval', 'playing_file': self.path, 'interval': 0, 'callback': None}
-            data.update(self.callback)
-            set_kodi_string('_slyguy_play_callback', json.dumps(data))
+            play_data['callback'].update(self.callback)
+
+        set_kodi_string('_slyguy_play_data', json.dumps(play_data))
 
         if handle > 0:
             xbmcplugin.setResolvedUrl(handle, True, li)
@@ -526,7 +560,7 @@ class Item(gui.Item):
 
 #Plugin.Folder()
 class Folder(object):
-    def __init__(self, title=None, items=None, content='videos', updateListing=False, cacheToDisc=True, sort_methods=None, thumb=None, fanart=None, no_items_label=_.NO_ITEMS, no_items_method='dialog'):
+    def __init__(self, title=None, items=None, content='AUTO', updateListing=False, cacheToDisc=True, sort_methods=None, thumb=None, fanart=None, no_items_label=_.NO_ITEMS, no_items_method='dialog', show_news=True):
         self.title = title
         self.items = items or []
         self.content = content
@@ -537,13 +571,16 @@ class Folder(object):
         self.fanart = fanart or default_fanart
         self.no_items_label = no_items_label
         self.no_items_method = no_items_method
+        self.show_news = show_news
 
     def display(self):
         handle = _handle()
-        items  = [i for i in self.items if i]
+        items = [i for i in self.items if i]
 
         ep_sort = True
         last_show_name = ''
+
+        item_types = {}
 
         if not items and self.no_items_label:
             label = _(self.no_items_label, _label=True)
@@ -557,6 +594,7 @@ class Folder(object):
                     is_folder = False,
                 ))
 
+        count = 0.0
         for item in items:
             if self.thumb and not item.art.get('thumb'):
                 item.art['thumb'] = self.thumb
@@ -564,22 +602,46 @@ class Folder(object):
             if self.fanart and not item.art.get('fanart'):
                 item.art['fanart'] = self.fanart
 
-            episode = item.info.get('episode')
-            show_name = item.info.get('tvshowtitle')
-            if not episode or not show_name or (last_show_name and show_name != last_show_name):
-                ep_sort = False
+            if not item.specialsort:
+                media_type = item.info.get('mediatype')
+                show_name = item.info.get('tvshowtitle')
+                if media_type != 'episode' or not show_name or (last_show_name and show_name != last_show_name):
+                    ep_sort = False
 
-            if not last_show_name:
-                last_show_name = show_name
+                if not last_show_name:
+                    last_show_name = show_name
+
+                if media_type not in item_types:
+                    item_types[media_type] = 0
+
+                item_types[media_type] += 1
+                count += 1
 
             li = item.get_li()
             xbmcplugin.addDirectoryItem(handle, item.path, li, item.is_folder)
+
+        if self.content == 'AUTO':
+            self.content = 'videos'
+
+            if not settings.common_settings.getBool('video_folder_content', False) and item_types:
+                type_map = {
+                    'movie': 'movies',
+                    'tvshow': 'tvshows',
+                    'season': 'tvshows',
+                    'episode': 'episodes',
+                }
+
+                top_type = sorted(item_types, key=lambda k: item_types[k], reverse=True)[0]
+                percent = (item_types[top_type] / count) * 100
+                content_type = type_map.get(top_type)
+                if percent > 70 and content_type:
+                    self.content = content_type
 
         if self.content: xbmcplugin.setContent(handle, self.content)
         if self.title: xbmcplugin.setPluginCategory(handle, self.title)
 
         if not self.sort_methods:
-            self.sort_methods = [xbmcplugin.SORT_METHOD_EPISODE, xbmcplugin.SORT_METHOD_UNSORTED, xbmcplugin.SORT_METHOD_LABEL]
+            self.sort_methods = [xbmcplugin.SORT_METHOD_EPISODE, xbmcplugin.SORT_METHOD_UNSORTED, xbmcplugin.SORT_METHOD_LABEL, xbmcplugin.SORT_METHOD_VIDEO_YEAR, xbmcplugin.SORT_METHOD_DATEADDED, xbmcplugin.SORT_METHOD_PLAYCOUNT]
             if not ep_sort:
                 self.sort_methods.pop(0)
 
@@ -588,10 +650,8 @@ class Folder(object):
 
         xbmcplugin.endOfDirectory(handle, succeeded=True, updateListing=self.updateListing, cacheToDisc=self.cacheToDisc)
 
-        plugin_msg = settings.common_settings.get('_next_plugin_msg')
-        if plugin_msg:
-            settings.common_settings.set('_next_plugin_msg', '')
-            gui.ok(plugin_msg)
+        if self.show_news:
+            process_news()
 
     def add_item(self, *args, **kwargs):
         position = kwargs.pop('_position', None)
@@ -619,3 +679,55 @@ class Folder(object):
             self.items.append(items)
         else:
             raise Exception('add_items only accepts an Item or list of Items')
+
+def process_news():
+    news = settings.common_settings.get('_news')
+    if not news:
+        return
+
+    try:
+        news = json.loads(news)
+        if news.get('show_in') and ADDON_ID.lower() not in [x.lower() for x in news['show_in'].split(',')]:
+            return
+
+        settings.common_settings.set('_news', '')
+
+        if news.get('country'):
+            valid = False
+            cur_country = user_country().lower()
+
+            for rule in [x.lower().strip() for x in news['country'].split(',')]:
+                if not rule:
+                    continue
+                elif not rule.startswith('!') and cur_country == rule:
+                    valid = True
+                    break
+                else:
+                    valid = cur_country != rule[1:] if rule.startswith('!') else cur_country == rule
+
+            if not valid:
+                log.debug('news is only for countries: {}'.format(news['country']))
+                return
+
+        if news.get('requires') and not get_addon(news['requires'], install=False):
+            log.debug('news only for users with add-on: {} '.format(news['requires']))
+            return
+
+        if news['type'] == 'message':
+            gui.ok(news['message'], news.get('heading', _.NEWS_HEADING))
+
+        elif news['type'] == 'addon_release':
+            if get_addon(news['addon_id'], install=False):
+                log.debug('addon_release {} already installed'.format(news['addon_id']))
+                return
+
+            if gui.yes_no(news['message'], news.get('heading', _.NEWS_HEADING)):
+                addon = get_addon(news['addon_id'], install=True)
+                if not addon:
+                    return
+
+                url = url_for('', _addon_id=news['addon_id'])
+                xbmc.executebuiltin('ActivateWindow(Videos,{})'.format(url))
+
+    except Exception as e:
+        log.exception(e)
