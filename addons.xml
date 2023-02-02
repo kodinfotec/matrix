@@ -656,6 +656,35 @@ v3.0.3
 </extension>
 </addon>
 
+<addon id="plugin.video.infotec.kodi.nexus" name="Infotec" version="1.0.1+nexus.1" provider-name="Infotec">
+<requires>
+    <import addon="xbmc.python" version="3.0.0"/>
+    <import addon="script.module.requests"/>
+    <import addon="script.module.simplejson"/>
+	<import addon="script.module.kodi-six" />
+</requires>
+<extension point="xbmc.python.pluginsource" library="default.py">
+	<provides>video</provides>
+</extension>
+<extension point="xbmc.addon.metadata">
+	<summary lang="en">Addon example</summary>
+	<summary lang="pt">Addon modelo</summary>
+	<description lang="en">Addon for kodi 19-20</description>
+	<description lang="pt">Addon for kodi 19-20</description>
+    <disclaimer lang="en">The author is in no way affiliated with Kodi, Team Kodi or the XBMC Foundation. This is a non-profit resource.</disclaimer>
+	<disclaimer lang="pt">O autor não é de forma alguma afiliado ao Kodi, Team Kodi ou a XBMC Foundation. Este é um recurso sem fins lucrativos.</disclaimer>
+    <platform>all</platform>
+	<assets>
+       <icon>icon.png</icon>
+       <fanart>fanart.jpg</fanart>
+    </assets>
+	<news>
+v1.0.0.matrix.1
+- Addon modelo
+	</news>
+</extension>
+</addon>
+
 <addon id="plugin.video.kodi.online.originais"
 version="0.0.22"
 name="[COLOR orange]Kodi [COLOR blue]Online [COLOR lime]Originais [COLOR yellow]Matrix[/COLOR]"
