@@ -1,5 +1,61 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <addons>
+<addon id="context.elementum" name="Elementum Context Helper" version="0.0.10" provider-name="elgatito">
+    <requires>
+        <import addon="xbmc.addon" version="16.0.0" />
+        <import addon="script.module.requests"/>
+        <import addon="plugin.video.elementum" optional="true"/>
+        <import addon="script.module.future" version="0.16.0.4"/>
+    </requires>
+    <extension point="kodi.context.item">
+        <menu id="kodi.core.main">
+            <menu>
+                <label>32011</label>
+                <item library="context_play.py">
+                    <label>32000</label>
+                    <visible>StringCompare(ListItem.dbtype,movie) | StringCompare(ListItem.dbtype,episode) | StringCompare(ListItem.dbtype,season) | String.IsEqual(ListItem.dbtype,movie) | String.IsEqual(ListItem.dbtype,episode) | String.IsEqual(ListItem.dbtype,season)</visible>
+                </item>
+                <item library="context_download.py">
+                    <label>32012</label>
+                    <visible>StringCompare(ListItem.dbtype,movie) | StringCompare(ListItem.dbtype,episode) | StringCompare(ListItem.dbtype,season) | String.IsEqual(ListItem.dbtype,movie) | String.IsEqual(ListItem.dbtype,episode) | String.IsEqual(ListItem.dbtype,season)</visible>
+                </item>
+                <item library="context_assign.py">
+                    <label>32002</label>
+                    <visible>StringCompare(ListItem.dbtype,movie) | StringCompare(ListItem.dbtype,episode) | StringCompare(ListItem.dbtype,season) | String.IsEqual(ListItem.dbtype,movie) | String.IsEqual(ListItem.dbtype,episode) | String.IsEqual(ListItem.dbtype,season)</visible>
+                </item>
+                <item library="context_library.py" args="remove">
+                    <label>32017</label>
+                    <visible>Integer.IsGreater(ListItem.DBID,0)+[StringCompare(ListItem.dbtype,movie) | StringCompare(ListItem.dbtype,tvshow) | String.IsEqual(ListItem.dbtype,movie) | String.IsEqual(ListItem.dbtype,tvshow)]</visible>
+                </item>
+                <item library="context_trakt.py" args="watched">
+                    <label>32018</label>
+                    <visible>[Integer.IsGreater(ListItem.DBID,0) | Integer.IsGreater(ListItem.UniqueID(tmdb),0)]+Integer.IsEqual(ListItem.PlayCount,0)+[StringCompare(ListItem.dbtype,movie) | StringCompare(ListItem.dbtype,episode) | StringCompare(ListItem.dbtype,season) | StringCompare(ListItem.dbtype,tvshow) | String.IsEqual(ListItem.dbtype,movie) | String.IsEqual(ListItem.dbtype,episode) | String.IsEqual(ListItem.dbtype,season) | String.IsEqual(ListItem.dbtype,tvshow)]</visible>
+                </item>
+                <item library="context_trakt.py" args="unwatched">
+                    <label>32019</label>
+                    <visible>[Integer.IsGreater(ListItem.DBID,0) | Integer.IsGreater(ListItem.UniqueID(tmdb),0)]+Integer.IsGreater(ListItem.PlayCount,0)+[StringCompare(ListItem.dbtype,movie) | StringCompare(ListItem.dbtype,episode) | StringCompare(ListItem.dbtype,season) | StringCompare(ListItem.dbtype,tvshow) | String.IsEqual(ListItem.dbtype,movie) | String.IsEqual(ListItem.dbtype,episode) | String.IsEqual(ListItem.dbtype,season) | String.IsEqual(ListItem.dbtype,tvshow)]</visible>
+                </item>
+                <item library="context_info.py">
+                    <label>32001</label>
+                    <visible>System.GetBool(debug.extralogging)+[StringCompare(ListItem.dbtype,movie) | StringCompare(ListItem.dbtype,episode) | StringCompare(ListItem.dbtype,season) | StringCompare(ListItem.dbtype,tvshow) | String.IsEqual(ListItem.dbtype,movie) | String.IsEqual(ListItem.dbtype,episode) | String.IsEqual(ListItem.dbtype,season) | String.IsEqual(ListItem.dbtype,tvshow)]</visible>
+                </item>
+            </menu>
+        </menu>
+    </extension>
+    <extension point="kodi.addon.metadata">
+        <summary lang="ru">Elementum Контекстное меню</summary>
+        <summary lang="en">Elementum Context Menu</summary>
+        <description lang="ru">Контекстное меню для Elementum.</description>
+        <description lang="en">Context Menu for Elementum.</description>
+        <disclaimer lang="ru">Автор не несёт ответственности за использование дополнения, не распространяет данные, выводимые дополнением.</disclaimer>
+        <disclaimer lang="en">The author is not responsible for addon usage and does not host or distribute any of the content displayed by this addon.</disclaimer>
+        <license>WTFPL, Version 2, December 2004. See included LICENSE.</license>
+        <website>https://elementum.surge.sh</website>
+        <source>https://github.com/elgatito/context.elementum</source>
+        <forum></forum>
+    </extension>
+</addon>
+
 <addon
   id="inputstream.adaptive"
   version="19.0.1"
@@ -973,6 +1029,44 @@ provider-name="Infotec - Kodi - Online">
       <fanart>fanart.jpg</fanart>
     </assets>
   </extension>
+</addon>
+
+<addon id="script.elementum.burst" name="Elementum [COLOR FFFF6B00]Burst[/COLOR]" version="0.0.73" provider-name="elgatito">
+    <requires>
+        <import addon="xbmc.addon" version="16.0.0" />
+        <import addon="plugin.video.elementum" optional="true"/>
+        <import addon="script.module.kodi-six" />
+        <import addon="script.module.requests" />
+        <import addon="script.module.future" version="0.16.0.4"/>
+    </requires>
+    <extension point="xbmc.python.script" library="burst.py">
+        <provides>executable</provides>
+    </extension>
+    <extension point="xbmc.addon.metadata">
+        <summary lang="en">Elementum torrents provider</summary>
+        <summary lang="hr">Elementum torrent pružatelji usluga</summary>
+        <summary lang="es">Proveedor de torrents Elementum</summary>
+        <summary lang="ru">Поисковое дополнение Elementum</summary>
+        <summary lang="sv">Elementum-torrentleverantör</summary>
+        <description lang="en">Elementum Burst is a lean and mean multi-provider for Elementum.</description>
+        <description lang="hr">Elementum Burst je višestruki pružatelj usluga za Elementum.</description>
+        <description lang="es">Elementum Burst es un multi-proveedor simple y eficiente para Elementum.</description>
+        <description lang="ru">Elementum Burst это поисковое дополнение, для поиска торрентов для Elementum.</description>
+        <description lang="sv">Elementum Burst är en enkel och effektiv multi-leverantör för Elementum.</description>
+        <disclaimer lang="en">The author does not host or distribute any of the content displayed by this addon. The author does not have any affiliation with the content providers.</disclaimer>
+        <disclaimer lang="hr">Autor ovog dodatka ne posjeduje i ne distribuira bilo kakav sadržaj koji je pronađen. Autor nije povezan sa bilo kojim izvorom sadržaja.</disclaimer>
+        <disclaimer lang="es">El autor no aloja ni distribuye ninguno de los contenidos mostrados por este complemento. El autor no tiene ninguna afiliación con los proveedores de contenido.</disclaimer>
+        <disclaimer lang="ru">Автор не несёт ответственности за использование дополнения, не распространяет данные, выводимые дополнением.</disclaimer>
+        <disclaimer lang="sv">Skaparen är inte värd eller distribuerar något av innehållet som visas av detta tillägg. Skaparen har ingen anslutning till innehållsleverantörerna.</disclaimer>
+        <license>WTFPL, Version 2, December 2004. See included LICENSE.</license>
+        <website>https://elementum.surge.sh</website>
+        <source>https://github.com/elgatito/script.elementum.burst</source>
+        <forum>TODO</forum>
+        <assets>
+            <icon>icon.png</icon>
+            <fanart>fanart.jpg</fanart>
+        </assets>
+    </extension>
 </addon>
 
 <addon id="script.module.idna" name="idna" version="2.10.0+matrix.1" provider-name="Kim Davies">
