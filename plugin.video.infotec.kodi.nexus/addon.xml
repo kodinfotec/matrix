@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="plugin.video.infotec.kodi.nexus" name="INFOTEC-KODI-NEXUS" version="1.0.2+nexus.1" provider-name="Infotec"> 
+<addon id="plugin.video.infotec.kodi.nexus" name="INFOTEC-KODI-NEXUS" version="1.0.5+nexus.1" provider-name="Infotec"> 
 <requires>
     <import addon="xbmc.python" version="3.0.0"/>
     <import addon="script.module.requests"/>
@@ -22,8 +22,8 @@
        <fanart>fanart.jpg</fanart>
     </assets>
 	<news>
-v1.0.2.nexua.1
-- Addon Nexus
+v1.0.0.matrix.1
+- Addon modelo
 	</news>
 </extension>
 </addon>
